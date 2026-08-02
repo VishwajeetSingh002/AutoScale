@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # 1. MySQL Database Service
+  database:
+    image: mysql:8.0
+    container_name: cloudscale-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ecommerce_db
+    ports:
+      - "3306:3306"
+    volumes:
+      # Mount schema and seed SQL scripts to run automatically on db creation
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+      - db_data:/var/lib/mysql
+    networks:
+      - cloudscale-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Node.js Express Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: cloudscale-backend
+    restart: always
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DB_HOST=database
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=ecommerce_db
+      - JWT_SECRET=supersecretkey123
+    ports:
+      - "5000:5000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - cloudscale-network
+
+  # 3. Nginx + React Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: cloudscale-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - cloudscale-network
+
+networks:
+  cloudscale-network:
+    driver: bridge
+
+volumes:
+  db_data:
