@@ -9,7 +9,12 @@ package-lock.json
 # Environments
 .env
 .env.*
+backend/.env
 !.env.example
+*.pem
+*.key
+credentials
+.aws/
 
 # Terraform
 .terraform/

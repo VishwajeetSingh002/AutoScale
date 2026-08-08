@@ -144,6 +144,9 @@ const Cart: React.FC<Props> = ({ apiBase, cart, updateQuantity, removeFromCart, 
                     src={resolveImageUrl(item.product.image_url)} 
                     alt={item.product.name}
                     style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', background: '#111827' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23111827%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2210%22>Item</text></svg>';
+                    }}
                   />
                   <div>
                     <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '4px' }}>{item.product.name}</h3>

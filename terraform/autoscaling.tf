@@ -42,12 +42,12 @@ resource "aws_launch_template" "web" {
               # Install Git, Node.js, NPM, AWS CLI and jq
               echo "=== Installing Packages ==="
               curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-              apt-get install -y nodejs git awscli jq
+              apt-get install -y nodejs git awscli jq mysql-client
 
               # Clone E-Commerce application
               echo "=== Cloning Repository ==="
               cd /home/ubuntu
-              git clone https://github.com/CaptDoom/globalive.git AutoScalingProject
+              git clone https://github.com/VishwajeetSinghChauhan/AutoScale.git AutoScalingProject
               cd AutoScalingProject
 
               # Query Secrets Manager for database credentials securely
@@ -59,6 +59,11 @@ resource "aws_launch_template" "web" {
               DB_PASS_VAL=$(echo $SECRET_JSON | jq -r '.password')
               DB_NAME_VAL=$(echo $SECRET_JSON | jq -r '.database')
               DB_PORT_VAL=$(echo $SECRET_JSON | jq -r '.port')
+
+              # Initialize database schema and seed data if needed
+              echo "=== Initializing Database Schema ==="
+              mysql -h $DB_HOST_VAL -P $DB_PORT_VAL -u $DB_USER_VAL -p"$DB_PASS_VAL" $DB_NAME_VAL < database/schema.sql || true
+              mysql -h $DB_HOST_VAL -P $DB_PORT_VAL -u $DB_USER_VAL -p"$DB_PASS_VAL" $DB_NAME_VAL < database/seed.sql || true
 
               # Construct the .env variables using the secret values
               echo "=== Configuring Environment Variables ==="
@@ -111,7 +116,7 @@ resource "aws_launch_template" "web" {
 
 # 3. Auto Scaling Group (ASG)
 resource "aws_autoscaling_group" "web_asg" {
-  name_prefix         = "cloudscale-asg-"
+  name_prefix         = "cloudscale-asg-v3-"
   vpc_zone_identifier = aws_subnet.private_app[*].id
   target_group_arns   = [aws_lb_target_group.web_targets.arn]
   

@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
 // Import configs
 import pool from './config/db.js';
@@ -32,8 +34,51 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Ensure uploads directory exists and auto-sync missing image assets from S3
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Auto-sync missing product images from S3 bucket on startup
+const syncProductAssets = async () => {
+  const bucket = process.env.AWS_S3_BUCKET_NAME;
+  const region = process.env.AWS_REGION || 'us-east-1';
+  if (!bucket) return;
+
+  const productImages = [
+    'spectre_laptop.jpg',
+    'acoustic_headphones.jpg',
+    'ereader_oasis.jpg',
+    'leather_wallet.jpg',
+    'canvas_backpack.jpg',
+    'mesh_chair.jpg',
+    'thermo_mug.jpg',
+    'velvet_cushion.jpg'
+  ];
+
+  try {
+    const s3 = new S3Client({ region });
+    for (const img of productImages) {
+      const localPath = path.join(uploadsDir, img);
+      if (!fs.existsSync(localPath)) {
+        console.log(`[AssetSync] Fetching s3://${bucket}/uploads/${img}...`);
+        const command = new GetObjectCommand({ Bucket: bucket, Key: `uploads/${img}` });
+        const data = await s3.send(command);
+        const byteArray = await data.Body.transformToByteArray();
+        fs.writeFileSync(localPath, Buffer.from(byteArray));
+        console.log(`[AssetSync] Downloaded ${img}`);
+      }
+    }
+  } catch (err) {
+    console.warn('[AssetSync] S3 sync notice:', err.message);
+  }
+};
+
+syncProductAssets().catch(() => {});
+
 // Serve local upload folders statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 // Register Routes
 app.use('/api/auth', authRoutes);
