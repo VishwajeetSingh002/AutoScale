@@ -9,7 +9,5 @@ services:
     plan: standard
     numInstances: 1
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: NODE_OPTIONS
         value: --max-old-space-size=2048
