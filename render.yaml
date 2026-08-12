@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: autoscale-ecommerce
+    env: node
+    branch: main
+    root: .
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: free
