@@ -23,7 +23,7 @@ resource "aws_launch_template" "web" {
   }
 
   network_interfaces {
-    associate_public_ip_address = false # EC2 instances live in private subnet for security
+    associate_public_ip_address = true # Temporarily true so we can connect and view logs
     security_groups             = [aws_security_group.web_server.id]
   }
 
@@ -114,15 +114,16 @@ EOT
 
 # 3. Auto Scaling Group (ASG)
 resource "aws_autoscaling_group" "web_asg" {
-  name_prefix         = "cloudscale-asg-v3-"
-  vpc_zone_identifier = aws_subnet.private_app[*].id
-  target_group_arns   = [aws_lb_target_group.web_targets.arn]
+  name_prefix               = "cloudscale-asg-v3-"
+  vpc_zone_identifier       = aws_subnet.private_app[*].id
+  target_group_arns         = [aws_lb_target_group.web_targets.arn]
   
-  min_size            = 1
-  desired_capacity    = 2
-  max_size            = 6
-  health_check_type   = "ELB"
+  min_size                  = 1
+  desired_capacity          = 2
+  max_size                  = 6
+  health_check_type         = "ELB"
   health_check_grace_period = 180
+  wait_for_capacity_timeout = "0" # Prevents Terraform from hanging during applies
 
   launch_template {
     id      = aws_launch_template.web.id
