@@ -85,7 +85,7 @@ syncProductAssets().catch(() => {});
 // Serve local upload folders statically
 app.use("/uploads", express.static(uploadsDir));
 
-// Explicit Health Check Endpoint for AWS Target Group
+// Explicit Health Check Endpoints for AWS Target Group
 app.get("/api/metrics/health", (req, res) => {
   res
     .status(200)
