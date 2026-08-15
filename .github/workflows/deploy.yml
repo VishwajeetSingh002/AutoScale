@@ -50,7 +50,7 @@ jobs:
           node-version: 20
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: npm install
         working-directory: ./frontend
 
       - name: Compile React Frontend (Production Build)
