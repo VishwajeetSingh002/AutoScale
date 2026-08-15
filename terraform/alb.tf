@@ -17,7 +17,7 @@ resource "aws_lb" "external" {
 
 resource "aws_lb_target_group" "web_targets" {
   name_prefix = "cls-" # Exactly 4 characters (under the 6-char limit)
-  port        = 5000        # Matches your Node.js backend port
+  port        = 5000   # Matches your Node.js backend port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
 

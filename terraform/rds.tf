@@ -42,24 +42,24 @@ resource "aws_secretsmanager_secret_version" "db_secret_ver" {
 
 # 5. RDS MySQL Database Instance (Multi-AZ Resilient)
 resource "aws_db_instance" "mysql" {
-  identifier             = "cloudscale-rds-mysql"
-  allocated_storage      = 20
-  max_allocated_storage  = 100
-  storage_type           = "gp2"
-  engine                 = "mysql"
-  engine_version         = "8.0"
-  instance_class         = "db.t3.micro" # Free Tier eligible size
-  
-  db_name                = "ecommerce_db"
-  username               = var.db_username
-  password               = random_password.db_password.result
-  
+  identifier            = "cloudscale-rds-mysql"
+  allocated_storage     = 20
+  max_allocated_storage = 100
+  storage_type          = "gp2"
+  engine                = "mysql"
+  engine_version        = "8.0"
+  instance_class        = "db.t3.micro" # Free Tier eligible size
+
+  db_name  = "ecommerce_db"
+  username = var.db_username
+  password = random_password.db_password.result
+
   db_subnet_group_name   = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.db_server.id]
-  
-  multi_az               = true # Enable automatic multi-AZ failover and synchronous replica
-  publicly_accessible    = false
-  skip_final_snapshot    = true  # Fast teardown; do not create snapshot upon running terraform destroy
+
+  multi_az            = true # Enable automatic multi-AZ failover and synchronous replica
+  publicly_accessible = false
+  skip_final_snapshot = true # Fast teardown; do not create snapshot upon running terraform destroy
 
   tags = {
     Name        = "cloudscale-rds-mysql"

@@ -114,10 +114,10 @@ EOT
 
 # 3. Auto Scaling Group (ASG)
 resource "aws_autoscaling_group" "web_asg" {
-  name_prefix               = "cloudscale-asg-v3-"
-  vpc_zone_identifier       = aws_subnet.private_app[*].id
-  target_group_arns         = [aws_lb_target_group.web_targets.arn]
-  
+  name_prefix         = "cloudscale-asg-v3-"
+  vpc_zone_identifier = aws_subnet.private_app[*].id
+  target_group_arns   = [aws_lb_target_group.web_targets.arn]
+
   min_size                  = 1
   desired_capacity          = 2
   max_size                  = 6

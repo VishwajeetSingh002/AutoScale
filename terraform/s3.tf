@@ -55,8 +55,8 @@ resource "aws_s3_bucket_policy" "allow_public_read" {
         Resource  = "${aws_s3_bucket.assets.arn}/*"
       },
       {
-        Sid      = "AllowCloudFrontServicePrincipalReadOnly"
-        Effect   = "Allow"
+        Sid    = "AllowCloudFrontServicePrincipalReadOnly"
+        Effect = "Allow"
         Principal = {
           Service = "cloudfront.amazonaws.com"
         }
