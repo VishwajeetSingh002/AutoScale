@@ -1,5 +1,3 @@
-# autoscaling.tf
-
 # 1. Fetch latest Ubuntu 22.04 LTS AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -68,17 +66,17 @@ resource "aws_launch_template" "web" {
               # Construct the .env variables using the secret values
               echo "=== Configuring Environment Variables ==="
               cat <<EOT > backend/.env
-              PORT=5000
-              NODE_ENV=production
-              DB_HOST=$DB_HOST_VAL
-              DB_PORT=$DB_PORT_VAL
-              DB_USER=$DB_USER_VAL
-              DB_PASSWORD=$DB_PASS_VAL
-              DB_NAME=$DB_NAME_VAL
-              JWT_SECRET=supersecretkey123
-              AWS_REGION=${var.aws_region}
-              AWS_S3_BUCKET_NAME=${aws_s3_bucket.assets.id}
-              EOT
+PORT=5000
+NODE_ENV=production
+DB_HOST=$DB_HOST_VAL
+DB_PORT=$DB_PORT_VAL
+DB_USER=$DB_USER_VAL
+DB_PASSWORD=$DB_PASS_VAL
+DB_NAME=$DB_NAME_VAL
+JWT_SECRET=supersecretkey123
+AWS_REGION=${var.aws_region}
+AWS_S3_BUCKET_NAME=${aws_s3_bucket.assets.id}
+EOT
 
               # Install backend dependencies
               echo "=== Installing Backend Packages ==="
@@ -143,6 +141,10 @@ resource "aws_autoscaling_group" "web_asg" {
     value               = "cloudscale-web-node"
     propagate_at_launch = true
   }
+
+  depends_on = [
+    aws_secretsmanager_secret.db_secret
+  ]
 
   lifecycle {
     create_before_destroy = true
