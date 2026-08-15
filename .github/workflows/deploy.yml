@@ -27,7 +27,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Initialize Terraform Working Directory
-        run: terraform init -backend=false
+        run: terraform init
         working-directory: ./terraform
 
       - name: Validate Terraform Syntax
@@ -91,4 +91,3 @@ jobs:
           
       - name: Deployment Flow Notification
         run: echo "CI/CD execution completed successfully. Ready for ECR release and rolling ASG update."
-        
