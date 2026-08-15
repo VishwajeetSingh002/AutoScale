@@ -46,7 +46,10 @@ if (!fs.existsSync(uploadsDir)) {
 const syncProductAssets = async () => {
   const bucket = process.env.AWS_S3_BUCKET_NAME;
   const region = process.env.AWS_REGION || "us-east-1";
-  if (!bucket) return;
+  if (!bucket) {
+    console.log("[AssetSync] Skipping S3 sync: AWS_S3_BUCKET_NAME not set.");
+    return;
+  }
 
   const productImages = [
     "spectre_laptop.jpg",
@@ -80,12 +83,14 @@ const syncProductAssets = async () => {
   }
 };
 
-syncProductAssets().catch(() => {});
+syncProductAssets().catch((err) => {
+  console.error("[AssetSync] Unhandled error during asset sync:", err);
+});
 
 // Serve local upload folders statically
 app.use("/uploads", express.static(uploadsDir));
 
-// Explicit Health Check Endpoints for AWS Target Group
+// Explicit Health Check Endpoints for AWS Target Group (Must respond instantly without blocking DB calls)
 app.get("/api/metrics/health", (req, res) => {
   res
     .status(200)
@@ -131,13 +136,26 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-app.listen(PORT, "0.0.0.0", () => {
+// Start Server and verify database connection pool
+app.listen(PORT, "0.0.0.0", async () => {
   console.log(`==================================================`);
   console.log(`[Server] E-Commerce Backend running on port ${PORT}`);
   console.log(`[Server] Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`[Server] Press Ctrl+C to terminate`);
   console.log(`==================================================`);
+
+  // Test database connection on startup to log any connection issues immediately
+  try {
+    if (pool) {
+      const connection = await pool.getConnection();
+      console.log(`[Database] Successfully connected to MySQL database!`);
+      connection.release();
+    }
+  } catch (dbErr) {
+    console.error(
+      `[Database Error] Failed to connect to MySQL on startup:`,
+      dbErr.message,
+    );
+  }
 });
 
 // Handle graceful termination
