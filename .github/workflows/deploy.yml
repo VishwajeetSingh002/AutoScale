@@ -66,3 +66,4 @@ jobs:
           file: docker/frontend.Dockerfile
           push: true
           tags: 790776864418.dkr.ecr.us-east-1.amazonaws.com/cloudscale-frontend:latest
+          
