@@ -36,6 +36,24 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ==========================================
+// EXPLICIT HEALTH CHECK & ROOT ENDPOINTS
+// (Must be at the very top before any routers)
+// ==========================================
+app.get("/", (req, res) => {
+  res.status(200).send("CloudScale API Server is running");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+app.get("/api/metrics/health", (req, res) => {
+  res
+    .status(200)
+    .json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
 // Ensure uploads directory exists and auto-sync missing image assets from S3
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -89,17 +107,6 @@ syncProductAssets().catch((err) => {
 
 // Serve local upload folders statically
 app.use("/uploads", express.static(uploadsDir));
-
-// Explicit Health Check Endpoints for AWS Target Group (Must respond instantly without blocking DB calls)
-app.get("/api/metrics/health", (req, res) => {
-  res
-    .status(200)
-    .json({ status: "healthy", timestamp: new Date().toISOString() });
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
 
 // Register Routes
 app.use("/api/auth", authRoutes);
